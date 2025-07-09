@@ -6,6 +6,7 @@ LABEL maintainer="Sandro Martini <sandro.martini@gmail.com>"
 
 # update packages, to reduce risk of vulnerabilities
 RUN apt-get update && apt-get upgrade -y && apt-get autoclean -y && apt-get autoremove -y
+RUN npm install -g pnpm
 
 # set a non privileged user to use when running this image
 RUN groupadd -r nodejs && useradd -g nodejs -s /bin/bash -d /home/nodejs -m nodejs
@@ -28,7 +29,6 @@ COPY --chown=nodejs:nodejs package*.json ./
 # COPY .snyk ./
 
 # install dependencies here, for better reuse of layers
-RUN npm install -g pnpm
 RUN pnpm install && pnpm audit fix && pnpm store prune
 
 # copy all sources in the container (exclusions in .dockerignore file)
