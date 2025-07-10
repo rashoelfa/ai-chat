@@ -1,8 +1,4 @@
-FROM node:lts-slim as builder
-
-LABEL version="3.0.0"
-LABEL description="Example Fastify (Node.js) webapp Docker Image"
-LABEL maintainer="Sandro Martini <sandro.martini@gmail.com>"
+FROM node:24-bullseye-slim as builder
 
 # update packages, to reduce risk of vulnerabilities
 RUN apt-get update && apt-get upgrade -y && apt-get autoclean -y && apt-get autoremove -y
@@ -41,7 +37,7 @@ COPY --chown=nodejs:nodejs . .
 # COPY --from=builder /dist /dist
 
 # exposed port/s
-EXPOSE 8000
+EXPOSE 3000
 
 # add an healthcheck, useful
 # healthcheck with curl, but not recommended
