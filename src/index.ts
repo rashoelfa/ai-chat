@@ -9,6 +9,7 @@ import { registerRoutes } from './routes'
 // ------------------------
 const server = fastify({ logger: true })
 const port = Number(process.env.PORT) || 3000
+const host = '0.0.0.0'
 
 // ------------------------
 // Plugin Registration
@@ -42,13 +43,18 @@ registerRoutes(server)
 // ------------------------
 const start = async () => {
   try {
-    await server.listen({ port })
+    await server.listen({ port, host }, (err, address) => {
+      if (err) {
+        server.log.error(err)
+        process.exit(1)
+      }
+      console.log(`🚀 Server running at ${address}:${port}`)
+    })
     mkdir(path.join(__dirname, 'public'), { recursive: true }, err => {
       if (err) {
         console.error('Failed to create public directory:', err)
       }
     })
-    console.log(`🚀 Server running at http://localhost:${port}`)
   } catch (err) {
     server.log.error(err)
     process.exit(1)
