@@ -5,7 +5,7 @@ export const ENVIRONMENT = {
     SERVICE: {
       AI: {
         BASE_URL:
-          process.env.AI_SERVICE_BASE_URL ||
+          process.env.NEXT_PUBLIC_AI_SERVICE_BASE_URL  ||
           "http://localhost:3000",
       },
     },
