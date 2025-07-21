@@ -1,16 +1,21 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { ollama } from '../services/ollama'
+import { client } from '../services/openai'
 
 export const getModels = async (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
   try {
-    const listResponse = await ollama.list()
+    const listResponse = await client.models.list()
+
     return {
-      models: listResponse.models.map(model => ({
-        name: model.name,
-      })),
+      models: listResponse.data
+        .filter((model: any) =>
+          Object.values(model.pricing).every(v => v === '0')
+        )
+        .map((model: any) => ({
+          name: model.id,
+        })),
     }
   } catch (err) {
     console.error('Failed to fetch models:', err)

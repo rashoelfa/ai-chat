@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { ollama } from '../services/ollama'
+import { client } from '../services/openai'
+import { prompt } from '../services/prompt'
 
 export const chat = async (request: FastifyRequest, reply: FastifyReply) => {
   const { model, messages, stream } = request.validatedBody
@@ -12,22 +13,12 @@ export const chat = async (request: FastifyRequest, reply: FastifyReply) => {
         Connection: 'keep-alive',
       })
 
-      console.log([
-        {
-          role: 'system',
-          content:
-            "You are a helpful assistant. Please respond based on the user's input.",
-        },
-        ...messages,
-      ])
-
-      const chatStream = await ollama.chat({
+      const chatStream = await client.chat.completions.create({
         model,
         messages: [
           {
             role: 'system',
-            content:
-              "You are a helpful assistant. Please respond based on the user's input.",
+            content: prompt.system,
           },
           ...messages,
         ],
@@ -40,26 +31,28 @@ export const chat = async (request: FastifyRequest, reply: FastifyReply) => {
 
       reply.raw.end()
     } else {
-      const result = await ollama.chat({
+      const result = await client.chat.completions.create({
         model,
         messages: [
           {
             role: 'system',
-            content:
-              "You are a helpful assistant. Please respond based on the user's input.",
+            content: prompt.system,
           },
           ...messages,
         ],
       })
       return {
-        response: result.message.content.replace(
-          /<think>[\s\S]*?<\/think>\n\n/g,
-          ''
-        ),
+        response: result.choices[0].message.content,
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Chat error:', err)
+    if (err.status === 429) {
+      reply
+        .status(429)
+        .send({ error: 'Rate limit exceeded. Please try again later.' })
+      return
+    }
     reply.status(500).send({ error: 'Chat request failed' })
   }
 }
